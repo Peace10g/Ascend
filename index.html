@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B1020"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"><title>Ascend</title>
+<style>
+:root{--bg:#0B1020;--card:#151C33;--ln:#2a3354;--ink:#F5EFE0;--mut:#9aa3bf;--gold:#D4AF37;--ch:#E6C979;--ruby:#E5395B;--amb:#F0A32F;--sap:#3D7BEB;--em:#2FBF8A;--am:#9B6BDB;color-scheme:dark}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 "Trebuchet MS",Verdana,sans-serif;padding:env(safe-area-inset-top,0) 0 calc(84px + env(safe-area-inset-bottom,0))}
+.w{max-width:560px;margin:0 auto;padding:12px}
+.hero{background:linear-gradient(160deg,#0B1020,#17306b 70%,#2b5bb8);border:2px solid var(--gold);border-radius:18px;padding:16px;text-align:center}
+h1{margin:0;font:800 28px Georgia,serif;color:var(--ch);letter-spacing:4px}h3{margin:0 0 8px;font-size:16px;color:var(--ch)}h3.sec{margin:14px 0 8px}
+.card{background:var(--card);border:1px solid var(--ln);border-radius:14px;padding:14px;margin-top:12px}
+.mut{color:var(--mut);font-size:13px}.top{display:flex;gap:6px;align-items:center;flex-wrap:wrap}.top b{flex:1;font-size:17px}
+.chip{font-size:11px;font-weight:800;color:#fff;border-radius:10px;padding:2px 9px}.chip.o{background:transparent;border:1px solid var(--gold);color:var(--ch)}
+.nb{background:rgba(155,107,219,.16);border-left:4px solid var(--am);border-radius:8px;padding:8px 10px;margin:8px 0;font-size:14px}
+.btns{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.b{background:transparent;color:var(--ink);border:1.5px solid var(--gold);border-radius:10px;padding:9px 12px;font:700 14px inherit;font-family:inherit;text-decoration:none;cursor:pointer;min-height:40px}
+.b.g{border-color:var(--em);color:var(--em)}.b.gold{background:var(--gold);color:#0B1020}
+.sc{display:flex;align-items:center;gap:14px}.ring{position:relative;width:110px;height:110px;flex:none}.ring svg{transform:rotate(-90deg)}.ring b{position:absolute;inset:0;display:grid;place-items:center;font:800 30px Georgia,serif;color:var(--ch)}
+.st{font-weight:700}.bl{display:flex;justify-content:space-between;font-size:13px;margin-top:10px}.bar{height:10px;background:#0B1020;border-radius:6px;overflow:hidden;margin-top:3px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--ch))}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 3px}label.ck{display:flex;gap:8px;align-items:center;color:var(--ink);font-size:15px}
+input,select,textarea{width:100%;padding:10px;border:1.5px solid var(--ln);border-radius:10px;background:#0B1020;color:var(--ink);font:inherit}input[type=checkbox]{width:22px;height:22px}
+.fr{display:flex;gap:6px}.mic{background:var(--am);border:0;border-radius:10px;width:46px;font-size:18px;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--ch);outline-offset:2px}
+.row{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--ln);font-size:14px}.row:first-of-type{border-top:0}
+nav{position:fixed;left:0;right:0;bottom:0;background:#070b17;border-top:1px solid var(--gold);display:flex;gap:6px;padding:8px 8px calc(8px + env(safe-area-inset-bottom,0))}
+nav button{flex:1;background:transparent;border:0;color:var(--mut);font:700 15px inherit;font-family:inherit;padding:12px 4px;border-radius:12px;cursor:pointer}nav button.act{background:var(--gold);color:#0B1020}
+.cf{position:fixed;top:-16px;width:10px;height:14px;z-index:9;animation:fall 2.6s linear forwards}@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+</style></head><body><div class="w" id="app"></div>
+<nav><button data-a="tab" data-v="today">Today</button><button data-a="tab" data-v="leads">Leads</button><button data-a="tab" data-v="ins">Insights</button></nav>
+<script>
+const $=id=>document.getElementById(id);
+const ST=['New','Contacted','Inspection','Negotiating','Sold','Lost'],SRC=['Referral','Instagram','WhatsApp','Facebook','Walk-in','Site visit','Other'],LR=['Price too high','Not ready','Chose another property','No response','Other'];
+const QS=['Budget confirmed','Ready to buy soon','Decision-maker','Has seen the property'];
+const RC={hot:['var(--ruby)','Hot'],warm:['var(--amb)','Warm'],cold:['var(--sap)','Cold']},RO={hot:0,warm:1,cold:2};
+const OUT=[['answered','Answered'],['noanswer','No answer'],['interested','Interested'],['notnow','Not now'],['inspection','Inspection booked'],['closed','Closed deal']];
+const MT=[['Weekend greeting','Good morning {n}, happy weekend! I hope you and your family are doing well. Wishing you a restful and joyful weekend.'],['New month','Happy new month {n}! May this month bring you peace, progress and open doors. Thinking of you and your family.'],['How is family','Hello {n}, how is your family doing? I hope all is well with you. Just checking in to say hi.'],['After your meeting','Hello {n}, I remember you had a meeting recently. How did it go? I hope it turned out well.'],['Still interested?','Hello {n}, have you had more time to think about {p}? I am happy to answer any questions you have.'],['Inspection invite','Hello {n}, I would love to show you {p} in person. Which day this week works best for you?'],['New offer','Hello {n}, there is a new offer on {p} I thought you would like to hear about. When can I call you?'],['Payment plan','Hello {n}, I can walk you through a flexible payment plan for {p} so it fits your budget. Shall we talk?'],['Gentle nudge','Hello {n}, I know life gets busy. I am here whenever you are ready to continue. No pressure at all.'],['Thank you after visit','Thank you {n} for visiting {p}. It was a pleasure having you. Tell me what you think and ask me anything.']];
+const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const td=()=>ymd(new Date()),add=n=>{const d=new Date();d.setDate(d.getDate()+n);return ymd(d)},dd=s=>s?Math.round((new Date(td())-new Date(s))/864e5):0,money=n=>'₦'+Math.round(n||0).toLocaleString(),wa=p=>p.replace(/[^\d]/g,'').replace(/^0/,'234');
+const VS=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
+let S=null,tab='today',ed,mg=null,lg=null,pd=null,mtx='';
+try{S=JSON.parse(localStorage.getItem('asc'))}catch(e){}
+if(!S||!S.leads)S={leads:[],log:[],tg:{d:2,w:10,m:40},cel:''};
+const save=()=>{try{localStorage.setItem('asc',JSON.stringify(S))}catch(e){}};
+const active=l=>l.stage!=='Sold'&&l.stage!=='Lost',rate=l=>{if(!active(l))return null;const n=(l.q||[]).filter(Boolean).length;return n>=3?'hot':n===2?'warm':'cold'};
+const cnt=f=>S.log.filter(e=>e.d>=f).length,wk=()=>{const d=new Date();d.setDate(d.getDate()-(d.getDay()+6)%7);return ymd(d)};
+function nbm(l){const r=rate(l),g=dd(l.last||l.created);
+ if(l.stage==='Sold')return 'Thank them and ask for a referral.';if(l.stage==='Lost')return 'Revisit in 30 days with a fresh offer.';
+ if(l.stage==='New')return 'Make first contact today. Introduce yourself warmly.';
+ if(l.stage==='Inspection'&&l.fu&&l.fu<=td())return 'Call today and confirm the site visit.';
+ if(l.stage==='Negotiating')return 'Slow down. Answer their concerns and hold price talk until they are ready.';
+ if(r==='hot')return g>3?'Hot buyer going quiet. Send a warm check-in, not a push.':'Move fast: book a site inspection this week.';
+ if(r==='warm')return g>7?'Send a friendly note and share one new detail about the property.':'Build trust and invite them to inspect the site.';
+ return g>14?'Give them space. Send a friendly greeting, no sales push.':'Keep it light: a friendly message every two weeks.'}
+function card(l){const r=rate(l),c=r?RC[r]:null;
+ return `<div class="card"><div class="top"><b>${esc(l.name)}</b>${c?`<span class="chip" style="background:${c[0]}">${c[1]}</span>`:''}<span class="chip o">${l.stage}</span></div>
+<div class="mut">${esc(l.prop||'No property set')}${l.val?' · '+money(l.val):''}${l.fu?' · follow up '+l.fu:''}</div><div class="nb">${nbm(l)}</div>
+<div class="btns">${l.phone?`<a class="b" href="tel:${esc(l.phone)}">Call</a><a class="b" href="https://wa.me/${wa(l.phone)}" target="_blank" rel="noopener">WhatsApp</a>`:''}<button class="b" data-a="lg" data-id="${l.id}">Log call</button><button class="b" data-a="mg" data-id="${l.id}">Message</button><button class="b" data-a="ed" data-id="${l.id}">Edit</button></div>
+${lg===l.id?`<div class="btns">${OUT.map(o=>`<button class="b g" data-a="out" data-id="${l.id}" data-o="${o[0]}">${o[1]}</button>`).join('')}</div>`:''}</div>`}
+function streak(){let n=0;const dt=Math.max(1,S.tg.d);for(let i=0;i<400;i++){const k=add(-i);if(S.log.filter(e=>e.d===k).length>=dt)n++;else if(i>0)break}return n}
+function vToday(){const dt=Math.max(1,S.tg.d),c=cnt(td()),t=S.log.filter(e=>e.d===td()),sc=Math.round(Math.min(1,c/dt)*70+(t.some(e=>e.o==='inspection')?15:0)+(t.some(e=>e.o==='closed')?15:0)),R=46,C=2*Math.PI*R,sn=S.leads.filter(l=>l.stage==='Sold').length,rk=sn>=10?'Legend':sn>=5?'Summit':sn>=3?'Achiever':sn>=1?'Pathfinder':'Climber',st=streak();
+ const dl=S.leads.filter(l=>active(l)&&((l.fu&&l.fu<=td())||dd(l.last||l.created)>=7)).sort((a,b)=>RO[rate(a)]-RO[rate(b)]||(a.fu||'').localeCompare(b.fu||''));
+ const bar=(l,v,g)=>{g=Math.max(1,g);return `<div class="bl"><span>${l}</span><span>${v} / ${g}</span></div><div class="bar"><i style="width:${Math.min(100,v/g*100)}%"></i></div>`};
+ const pv=S.leads.filter(active).reduce((a,l)=>a+(+l.val||0),0),cm=S.leads.filter(l=>l.closed&&l.closed>=td().slice(0,8)+'01').reduce((a,l)=>a+(+l.val||0),0);
+ return `<div class="hero"><h1>ASCEND</h1><div class="mut">${new Date().toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})} · Rank: <b style="color:var(--ch)">${rk}</b></div></div>
+<div class="card"><div class="sc"><div class="ring"><svg width="110" height="110"><circle cx="55" cy="55" r="${R}" fill="none" stroke="#0B1020" stroke-width="11"/><circle cx="55" cy="55" r="${R}" fill="none" stroke="${sc>=70?'var(--em)':'var(--gold)'}" stroke-width="11" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C*(1-sc/100)}"/></svg><b>${sc}</b></div><div><div class="st">${st?'🔥 '+st+'-day momentum':'Hit your daily target to start momentum'}</div><div class="mut">Daily score out of 100: contacts, inspections booked and deals closed.</div></div></div>${bar('Today',c,dt)}${bar('This week',cnt(wk()),S.tg.w)}${bar('This month',cnt(td().slice(0,8)+'01'),S.tg.m)}</div>
+<div class="card"><div class="row"><span>Pipeline value</span><b>${money(pv)}</b></div><div class="row"><span>Closed this month</span><b style="color:var(--em)">${money(cm)}</b></div></div>
+<h3 class="sec">Call these first (${dl.length})</h3>${dl.length?dl.map(card).join(''):'<div class="card mut">Nobody is due. Add leads in Leads.</div>'}`}
+function vLeads(){const a=[...S.leads].sort((x,y)=>(active(y)-active(x))||((RO[rate(x)]??9)-(RO[rate(y)]??9)));
+ return `<div class="hero"><h1>LEADS</h1><div class="mut">${S.leads.length} in total</div></div><div class="btns"><button class="b gold" data-a="new">+ New lead</button></div>${a.length?a.map(card).join(''):'<div class="card mut">No leads yet. Tap New lead, or use the microphone to speak the details.</div>'}`}
+function vForm(){const x=ed||{name:'',phone:'',prop:'',src:SRC[0],stage:'New',fu:add(1),val:'',notes:'',q:[],lost:''};
+ const f=(id,l,v,t,m)=>`<label for="${id}">${l}</label><div class="fr"><input id="${id}" type="${t||'text'}" value="${esc(v)}">${m&&VS?`<button class="mic" data-a="mic" data-t="${id}" aria-label="Speak ${l}">🎤</button>`:''}</div>`;
+ const sel=(id,l,a,v)=>`<label for="${id}">${l}</label><select id="${id}">${a.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('')}</select>`;
+ return `<div class="hero"><h1>${ed?'EDIT LEAD':'NEW LEAD'}</h1></div><div class="card">${f('fn','Name',x.name,0,1)}${f('fp','Phone',x.phone,'tel',1)}${f('fpr','Property of interest',x.prop,0,1)}${sel('fs','Where the lead came from',SRC,x.src)}${sel('fst','Stage',ST,x.stage)}${f('ff','Next follow-up',x.fu,'date')}${f('fv','Deal value (₦)',x.val||'','number')}${f('fnt','Notes',x.notes,0,1)}
+<h3 class="sec">Is this a serious buyer?</h3>${QS.map((q,i)=>`<label class="ck"><input type="checkbox" id="q${i}" ${x.q&&x.q[i]?'checked':''}>${q}</label>`).join('')}<div class="mut">3 or 4 ticks is Hot, 2 is Warm, fewer is Cold.</div>${sel('fl','Reason if lost',LR,x.lost||LR[0])}
+<div class="btns"><button class="b gold" data-a="sv">Save lead</button><button class="b" data-a="cx">Cancel</button>${ed?`<button class="b" data-a="dl" data-id="${ed.id}">${pd===ed.id?'Tap again':'Delete'}</button>`:''}</div></div>`}
+function vMsg(){const l=S.leads.find(x=>x.id===mg);
+ return `<div class="hero"><h1>MESSAGE</h1><div class="mut">For ${esc(l.name)}</div></div><div class="card"><div class="btns">${MT.map((m,i)=>`<button class="b" data-a="mt" data-i="${i}">${m[0]}</button>`).join('')}</div><label for="mt">Edit before sending</label><textarea id="mt" rows="6">${esc(mtx)}</textarea><div class="btns"><button class="b gold" data-a="wa">Send on WhatsApp</button><button class="b" data-a="cp">Copy</button><button class="b" data-a="mgx">Back</button></div></div>`}
+function vIns(){const c=(a,f)=>a.filter(f).length,lost=S.leads.filter(l=>l.stage==='Lost');
+ return `<div class="hero"><h1>INSIGHTS</h1></div><div class="card"><h3>Targets (contacts)</h3><label for="td">Per day</label><input id="td" type="number" min="1" value="${S.tg.d}"><label for="tw">Per week</label><input id="tw" type="number" min="1" value="${S.tg.w}"><label for="tm">Per month</label><input id="tm" type="number" min="1" value="${S.tg.m}"><div class="btns"><button class="b gold" data-a="tg">Save targets</button></div></div>
+<div class="card"><h3>By stage</h3>${ST.map(s=>`<div class="row"><span>${s}</span><b>${c(S.leads,l=>l.stage===s)}</b></div>`).join('')}</div>
+<div class="card"><h3>Best sources (leads, sold)</h3>${SRC.map(s=>`<div class="row"><span>${s}</span><b>${c(S.leads,l=>l.src===s)} · ${c(S.leads,l=>l.src===s&&l.stage==='Sold')}</b></div>`).join('')}</div>
+<div class="card"><h3>Why leads said no</h3>${lost.length?LR.map(r=>`<div class="row"><span>${r}</span><b>${c(lost,l=>l.lost===r)}</b></div>`).join(''):'<div class="mut">No lost leads yet.</div>'}</div>
+<div class="card"><h3>Backup</h3><div class="mut">Export, copy the text somewhere safe. To restore, paste it here and tap Import.</div><textarea id="bk" rows="4"></textarea><div class="btns"><button class="b" data-a="ex">Export</button><button class="b" data-a="im">Import</button></div></div>`}
+function mic(id){const R=window.SpeechRecognition||window.webkitSpeechRecognition,r=new R();r.lang='en-NG';r.onresult=e=>{let t=e.results[0][0].transcript;const el=$(id);if(id==='fp')el.value=t.replace(/plus/gi,'+').replace(/[^\d+]/g,'');else el.value=(el.value?el.value+' ':'')+t};r.start()}
+function confetti(){if(matchMedia('(prefers-reduced-motion:reduce)').matches)return;const cs=['#D4AF37','#E5395B','#3D7BEB','#2FBF8A','#9B6BDB'];for(let i=0;i<50;i++){const d=document.createElement('div');d.className='cf';d.style.cssText='left:'+Math.random()*100+'vw;background:'+cs[i%5]+';animation-delay:'+Math.random()*.6+'s';document.body.appendChild(d);setTimeout(()=>d.remove(),3600)}}
+function out(id,o){const l=S.leads.find(x=>x.id===id);S.log.push({d:td(),id,o});l.last=td();l.fu=add(o==='noanswer'?1:o==='notnow'?14:3);
+ if(o==='inspection'&&active(l))l.stage='Inspection';else if(o==='closed'){l.stage='Sold';l.closed=td();confetti()}else if(l.stage==='New')l.stage='Contacted';
+ lg=null;if(cnt(td())===S.tg.d&&S.cel!==td()){S.cel=td();confetti()}}
+function saveLead(){const n=$('fn').value.trim();if(!n){$('fn').focus();return}
+ const o={id:ed?ed.id:'l'+Date.now(),name:n,phone:$('fp').value.trim(),prop:$('fpr').value.trim(),src:$('fs').value,stage:$('fst').value,fu:$('ff').value,val:+$('fv').value||0,notes:$('fnt').value.trim(),q:QS.map((_,i)=>$('q'+i).checked),lost:$('fl').value,created:ed?ed.created:td(),last:ed?ed.last:'',closed:ed?ed.closed:''};
+ if(o.stage==='Sold'&&!o.closed){o.closed=td();confetti()}
+ const i=S.leads.findIndex(x=>x.id===o.id);if(i>=0)S.leads[i]=o;else S.leads.push(o);ed=undefined;save();render()}
+function render(){$('app').innerHTML=mg?vMsg():ed!==undefined?vForm():tab==='today'?vToday():tab==='leads'?vLeads():vIns();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('act',b.dataset.v===tab))}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,id=b.dataset.id;
+ if(a==='mic'){mic(b.dataset.t);return}
+ if(a==='wa'||a==='cp'){mtx=$('mt').value;if(a==='wa'){const l=S.leads.find(x=>x.id===mg);open('https://wa.me/'+wa(l.phone||'')+'?text='+encodeURIComponent(mtx),'_blank')}else if(navigator.clipboard)navigator.clipboard.writeText(mtx);return}
+ if(a==='ex'){$('bk').value=JSON.stringify(S);$('bk').select();return}
+ if(a==='sv'){saveLead();return}
+ if(a==='tab'){tab=b.dataset.v;ed=undefined;mg=null}
+ else if(a==='lg')lg=lg===id?null:id;
+ else if(a==='out'){out(id,b.dataset.o)}
+ else if(a==='mg'){mg=id;mtx=''}
+ else if(a==='mgx')mg=null;
+ else if(a==='mt'){const l=S.leads.find(x=>x.id===mg);mtx=MT[+b.dataset.i][1].replace('{n}',l.name.split(' ')[0]).replace('{p}',l.prop||'the property')}
+ else if(a==='new')ed=null;
+ else if(a==='ed')ed=S.leads.find(x=>x.id===id);
+ else if(a==='cx')ed=undefined;
+ else if(a==='dl'){if(pd===id){S.leads=S.leads.filter(x=>x.id!==id);pd=null;ed=undefined}else pd=id}
+ else if(a==='tg')S.tg={d:+$('td').value||1,w:+$('tw').value||1,m:+$('tm').value||1};
+ else if(a==='im'){try{const x=JSON.parse($('bk').value);if(x.leads)S=x}catch(er){}}
+ save();render()});
+render();if('serviceWorker' in navigator)addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script></body></html>
